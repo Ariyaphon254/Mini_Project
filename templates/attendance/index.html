@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+{% block title %}เวลาทำงาน - Pet Clinic{% endblock %}
+{% block breadcrumb %}<span class="breadcrumb-item active"><i class="bi bi-clock-fill me-1"></i>เวลาทำงาน</span>{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex justify-content-between align-items-center">
+    <div><h2 class="page-title">บันทึกเวลาทำงาน</h2>
+    <p class="page-subtitle">{{ filter_date.strftime('%d/%m/%Y') }}</p></div>
+    <a href="{{ url_for('attendance.history') }}" class="btn btn-outline-primary btn-modern"><i class="bi bi-clock-history me-1"></i>ประวัติ</a>
+</div>
+
+<!-- Filter -->
+<div class="card-modern mb-4">
+    <div class="card-modern-body">
+        <form method="GET" class="row g-2 align-items-end">
+            <div class="col-md-4">
+                <label class="form-label small">วันที่</label>
+                <input type="date" name="date" class="form-control" value="{{ date_filter }}">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label small">สัตวแพทย์</label>
+                <select name="vet_id" class="form-select">
+                    <option value="">ทั้งหมด</option>
+                    {% for vet in vets %}
+                    <option value="{{ vet.id }}" {% if vet_filter == vet.id|string %}selected{% endif %}>{{ vet.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4">
+                <button type="submit" class="btn btn-primary"><i class="bi bi-search me-1"></i>ค้นหา</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Vet Check-in/out Cards -->
+<div class="row g-4 mb-4">
+    {% for vet in vets %}
+    {% set record = records|selectattr('vet_id', 'eq', vet.id)|first %}
+    <div class="col-xl-4 col-md-6">
+        <div class="card-modern attendance-card">
+            <div class="card-modern-body">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <h6 class="mb-0 fw-bold">{{ vet.name }}</h6>
+                        <small class="text-muted">{{ vet.specialization or 'ทั่วไป' }}</small>
+                    </div>
+                    <span class="badge bg-{{ vet.status_badge }}">{{ vet.status_text }}</span>
+                </div>
+
+                {% if record %}
+                <div class="attendance-times mb-3">
+                    <div class="time-item">
+                        <i class="bi bi-box-arrow-in-right text-success me-1"></i>
+                        <span>เข้า: <strong>{{ record.check_in.strftime('%H:%M') if record.check_in else '-' }}</strong></span>
+                    </div>
+                    <div class="time-item">
+                        <i class="bi bi-box-arrow-right text-danger me-1"></i>
+                        <span>ออก: <strong>{{ record.check_out.strftime('%H:%M') if record.check_out else '-' }}</strong></span>
+                    </div>
+                    {% if record.check_in and record.check_out %}
+                    <div class="time-item">
+                        <i class="bi bi-hourglass-split text-primary me-1"></i>
+                        <span>{{ record.work_hours }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+                {% else %}
+                <p class="text-muted small mb-3"><i class="bi bi-dash-circle me-1"></i>ยังไม่เช็คอิน</p>
+                {% endif %}
+
+                <div class="d-flex gap-2">
+                    {% if not record or not record.check_in %}
+                    <form method="POST" action="{{ url_for('attendance.checkin', vet_id=vet.id) }}" class="flex-grow-1">
+                        <button type="submit" class="btn btn-success btn-sm w-100"><i class="bi bi-box-arrow-in-right me-1"></i>Check In</button>
+                    </form>
+                    {% elif not record.check_out %}
+                    <form method="POST" action="{{ url_for('attendance.checkout', vet_id=vet.id) }}" class="flex-grow-1">
+                        <button type="submit" class="btn btn-danger btn-sm w-100"><i class="bi bi-box-arrow-right me-1"></i>Check Out</button>
+                    </form>
+                    {% else %}
+                    <button class="btn btn-secondary btn-sm w-100" disabled><i class="bi bi-check-circle me-1"></i>เสร็จสิ้น</button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="col-12"><div class="empty-state"><i class="bi bi-person-badge"></i><p>ไม่มีสัตวแพทย์</p></div></div>
+    {% endfor %}
+</div>
+{% endblock %}
