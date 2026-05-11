@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+{% block title %}{{ 'แก้ไข' if action=='edit' else 'เพิ่ม' }}นัดหมาย - Pet Clinic{% endblock %}
+{% block breadcrumb %}
+<a href="{{ url_for('appointment.index') }}" class="breadcrumb-item">นัดหมาย</a>
+<span class="breadcrumb-item active">{{ 'แก้ไข' if action=='edit' else 'เพิ่ม' }}</span>
+{% endblock %}
+
+{% block content %}
+<div class="page-header"><h2 class="page-title">{{ 'แก้ไข' if action=='edit' else 'เพิ่ม' }}การนัดหมาย</h2></div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card-modern">
+            <div class="card-modern-header"><h5><i class="bi bi-calendar-plus me-2"></i>ข้อมูลการนัดหมาย</h5></div>
+            <div class="card-modern-body">
+                <form method="POST">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label required-label">สัตว์เลี้ยง</label>
+                            <select name="pet_id" class="form-select" required>
+                                <option value="">-- เลือกสัตว์เลี้ยง --</option>
+                                {% for pet in pets %}
+                                <option value="{{ pet.id }}" {% if appt and appt.pet_id==pet.id %}selected{% endif %}>
+                                    {{ pet.name }} ({{ pet.species }}) - {{ pet.owner.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label required-label">สัตวแพทย์</label>
+                            <select name="vet_id" class="form-select" required>
+                                <option value="">-- เลือกสัตวแพทย์ --</option>
+                                {% for vet in vets %}
+                                <option value="{{ vet.id }}" {% if appt and appt.vet_id==vet.id %}selected{% endif %}>
+                                    {{ vet.name }} ({{ vet.specialization or 'ทั่วไป' }})
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label required-label">วันที่นัดหมาย</label>
+                            <input type="date" name="appointment_date" class="form-control" required
+                                   value="{{ appt.appointment_date.strftime('%Y-%m-%d') if appt else '' }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label required-label">เวลา</label>
+                            <input type="time" name="appointment_time" class="form-control" required
+                                   value="{{ appt.appointment_time.strftime('%H:%M') if appt else '' }}">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">เหตุผลที่มา</label>
+                            <input type="text" name="reason" class="form-control"
+                                   value="{{ appt.reason if appt else '' }}" placeholder="เช่น ตรวจสุขภาพประจำปี, รักษาอาการป่วย">
+                        </div>
+                        {% if action == 'edit' %}
+                        <div class="col-md-6">
+                            <label class="form-label">สถานะ</label>
+                            <select name="status" class="form-select">
+                                <option value="waiting" {% if appt.status=='waiting' %}selected{% endif %}>รอรับบริการ</option>
+                                <option value="confirmed" {% if appt.status=='confirmed' %}selected{% endif %}>ยืนยันแล้ว</option>
+                                <option value="completed" {% if appt.status=='completed' %}selected{% endif %}>เสร็จสิ้น</option>
+                                <option value="cancelled" {% if appt.status=='cancelled' %}selected{% endif %}>ยกเลิก</option>
+                            </select>
+                        </div>
+                        {% endif %}
+                        <div class="col-12">
+                            <label class="form-label">หมายเหตุ</label>
+                            <textarea name="notes" class="form-control" rows="2">{{ appt.notes if appt else '' }}</textarea>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-2 mt-4">
+                        <button type="submit" class="btn btn-primary btn-modern flex-grow-1"><i class="bi bi-check-lg me-2"></i>บันทึก</button>
+                        <a href="{{ url_for('appointment.index') }}" class="btn btn-secondary btn-modern"><i class="bi bi-arrow-left me-1"></i>ยกเลิก</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
